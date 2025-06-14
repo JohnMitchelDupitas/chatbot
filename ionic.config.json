@@ -1,0 +1,7 @@
+{
+  "name": "ass2",
+  "integrations": {
+    "capacitor": {}
+  },
+  "type": "vue-vite"
+}
