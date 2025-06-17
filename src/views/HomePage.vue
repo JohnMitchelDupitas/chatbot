@@ -1,23 +1,19 @@
 <template>
   <ion-page>
     <ion-content>
-      <div class="chat-container">
-        <h1>CHATBOT NI JM</h1>
+      <div class="container">
+        <h1>Chatbot ni Jm</h1>
         
-        <div ref="chatsContainer" class="chats-container">
-          <div v-for="(message, index) in messages" :key="index" 
-               :class="['message', message.type === 'user' ? 'user-message' : 'bot-message']">
-            <img v-if="message.type === 'bot'" src="https://res.cloudinary.com/dflyqatql/image/upload/v1750159886/470183694_1246212846595198_3676952656073397783_n_i1xjxo.jpg" class="avatar" />
-            <p class="message-text">{{ message.text }}</p>
+        <div ref="msgContainer" class="messages">
+          <div v-for="(msg, i) in chat" :key="i" 
+               :class="['msg', msg.from === 'user' ? 'user' : 'bot']">
+            <img v-if="msg.from === 'bot'" src="https://res.cloudinary.com/dflyqatql/image/upload/v1750159886/470183694_1246212846595198_3676952656073397783_n_i1xjxo.jpg" class="pic" />
+            <p>{{ msg.content }}</p>
           </div>
         </div>
 
-        <form @submit.prevent="handleFormSubmit" class="prompt-form">
-          <ion-input
-            v-model="userInput"
-            placeholder="Type your message..."
-            class="prompt-input"
-          />
+        <form @submit.prevent="sendMessage" class="input-form">
+          <ion-input v-model="input" placeholder="Message..." class="text-input" />
           <ion-button type="submit">Send</ion-button>
         </form>
       </div>
@@ -32,138 +28,129 @@ import { IonPage, IonContent, IonInput, IonButton } from '@ionic/vue';
 const API_KEY = "AIzaSyBJkduUoy5109BaF82PywkWCKAbq3HbRtY";
 const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${API_KEY}`;
 
-const messages = ref([]);
-const userInput = ref('');
-const chatsContainer = ref(null);
-const chatHistory = ref([]);
+const chat = ref([]);
+const input = ref('');
+const msgContainer = ref(null);
+const history = ref([]);
 
-const scrollToBottom = () => {
+const scroll = () => {
   setTimeout(() => {
-    if (chatsContainer.value) {
-      chatsContainer.value.scrollTop = chatsContainer.value.scrollHeight;
+    if (msgContainer.value) {
+      msgContainer.value.scrollTop = msgContainer.value.scrollHeight;
     }
-  }, 100);
+  }, 50);
 };
 
-const typingEffect = (text, messageIndex) => {
+const type = (text, idx) => {
   const words = text.split(" ");
-  let index = 0;
+  let i = 0;
   
-  const interval = setInterval(() => {
-    if (index < words.length) {
-      messages.value[messageIndex].text += (index > 0 ? " " : "") + words[index++];
-      scrollToBottom();
+  const timer = setInterval(() => {
+    if (i < words.length) {
+      chat.value[idx].content += (i > 0 ? " " : "") + words[i++];
+      scroll();
     } else {
-      clearInterval(interval);
+      clearInterval(timer);
     }
   }, 40);
 };
 
-const generateResponse = async () => {
-  const messageIndex = messages.value.length - 1;
+const getReply = async () => {
+  const idx = chat.value.length - 1;
   
   try {
-    const response = await fetch(API_URL, {
+    const res = await fetch(API_URL, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ contents: chatHistory.value })
+      body: JSON.stringify({ contents: history.value })
     });
 
-    const data = await response.json();
-    if (!response.ok) throw new Error(data.error?.message || "Unknown error");
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error?.message || "Error occurred");
 
-    const responseText = data.candidates[0].content.parts[0].text
-      .replace(/\*\*([^*]+)\*\*/g, "$1")
-      .trim();
-
-    messages.value[messageIndex].text = '';
-    typingEffect(responseText, messageIndex);
-    chatHistory.value.push({ role: "model", parts: [{ text: responseText }] });
-  } catch (error) {
-    console.error("API Error:", error.message);
-    messages.value[messageIndex].text = "Error: " + error.message;
+    const reply = data.candidates[0].content.parts[0].text.trim();
+    chat.value[idx].content = '';
+    type(reply, idx);
+    history.value.push({ role: "model", parts: [{ text: reply }] });
+  } catch (err) {
+    console.error("Error:", err.message);
+    chat.value[idx].content = "Sorry, an error occurred";
   }
 };
 
-const handleFormSubmit = () => {
-  if (!userInput.value.trim()) return;
+const sendMessage = () => {
+  if (!input.value.trim()) return;
 
-  // Add user message
-  messages.value.push({
-    type: 'user',
-    text: userInput.value.trim()
+  chat.value.push({
+    from: 'user',
+    content: input.value.trim()
   });
 
-  chatHistory.value.push({
+  history.value.push({
     role: "user",
-    parts: [{ text: userInput.value.trim() }]
+    parts: [{ text: input.value.trim() }]
   });
 
-  // Clear input
-  userInput.value = '';
-  scrollToBottom();
+  input.value = '';
+  scroll();
 
-  // Add bot message with new reply text
   setTimeout(() => {
-    messages.value.push({
-      type: 'bot',
-      text: 'J Dupitas reply...'
+    chat.value.push({
+      from: 'bot',
+      content: 'Wait lang lods i chatgpt ko lang'
     });
-    scrollToBottom();
-    generateResponse();
-  }, 600);
+    scroll();
+    getReply();
+  }, 500);
 };
 </script>
 
 <style scoped>
-.chat-container {
+.container {
   padding: 20px;
   height: 100%;
   display: flex;
   flex-direction: column;
 }
 
-.chats-container {
+.messages {
   flex: 1;
   overflow-y: auto;
   margin-bottom: 20px;
 }
 
-.message {
+.msg {
   padding: 8px 12px;
-  margin-bottom: 10px;
-  border-radius: 10px;
+  margin: 8px 0;
+  border-radius: 8px;
   max-width: 75%;
   clear: both;
   font-size: 15px;
-  line-height: 1.4;
 }
 
-.user-message {
-  background-color: #4285f4;
+.user {
+  background: #4285f4;
   color: white;
   float: right;
-  text-align: right;
 }
 
-.bot-message {
-  background-color: #f1f0f0;
+.bot {
+  background: #f1f0f0;
   color: #333;
   float: left;
-  text-align: left;
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
 }
 
-.avatar {
+.pic {
   width: 20px;
   height: 20px;
 }
 
-.prompt-form {
+.input-form {
   display: flex;
-  gap: 10px;
+  gap: 8px;
   padding: 10px;
   background: white;
   position: sticky;
@@ -171,12 +158,12 @@ const handleFormSubmit = () => {
   border-top: 1px solid #eee;
 }
 
-.prompt-input {
+.text-input {
   --background: white;
   --color: black;
   --padding-start: 10px;
   --padding-end: 10px;
-  border: 1px solid #ccc;
+  border: 1px solid #ddd;
   border-radius: 5px;
   flex: 1;
 }
