@@ -7,7 +7,7 @@
         <div ref="chatsContainer" class="chats-container">
           <div v-for="(message, index) in messages" :key="index" 
                :class="['message', message.type === 'user' ? 'user-message' : 'bot-message']">
-            <img v-if="message.type === 'bot'" src="https://scontent.fmnl13-2.fna.fbcdn.net/v/t39.30808-6/470183694_1246212846595198_3676952656073397783_n.jpg?_nc_cat=106&ccb=1-7&_nc_sid=a5f93a&_nc_eui2=AeHH7el1uEALN1DVh7v7p30b-VSLmyp7Hvr5VIubKnse-tcLlKlp5jPm6A3dW7ykfFMAFmptk_YzU1Ahe7o4NB3q&_nc_ohc=9C5IaFtZbu8Q7kNvwH3t3VY&_nc_oc=AdlQ_qqqi8mZe0aVc-oKyeVRPJeqhQbIT_EudtXpNaNe2v5WWwoervUkJsk21-tDhUA&_nc_zt=23&_nc_ht=scontent.fmnl13-2.fna&_nc_gid=PXUuL_BvwmOqJpKn3beGjA&oh=00_AfNQ6FDSE7lwuLrrnIvj5qD4ehWeb2Zk6V2STgbM2yS9LA&oe=684A0435" class="avatar" />
+            <img v-if="message.type === 'bot'" src="https://res.cloudinary.com/dflyqatql/image/upload/v1750159886/470183694_1246212846595198_3676952656073397783_n_i1xjxo.jpg" class="avatar" />
             <p class="message-text">{{ message.text }}</p>
           </div>
         </div>
@@ -26,7 +26,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref } from 'vue';
 import { IonPage, IonContent, IonInput, IonButton } from '@ionic/vue';
 
 const API_KEY = "AIzaSyBJkduUoy5109BaF82PywkWCKAbq3HbRtY";
